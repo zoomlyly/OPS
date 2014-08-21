@@ -1,0 +1,144 @@
+<!-- content开始 -->
+  <!-- PAGE HEADER开始-->
+  <h3 class="page-title">
+  {{pageheader}}
+  </h3>
+  <div class="page-bar">
+    <ul class="page-breadcrumb">
+      <li>
+        <i class="fa fa-home"></i>
+        <a ui-sref="tenant">{{pageheaderTitle}}</a>
+        <i class="fa fa-angle-right"></i>
+      </li>
+      <li>
+        <a ui-sref="tenant">{{pageheaderChildTitle}}</a>
+      </li>
+    </ul>
+  </div>
+  <!-- PAGE HEADER结束-->
+  <div class="row">
+    <div class="col-md-12">
+      <a class="k-button k-button-icontext k-grid-add" data-toggle="modal" href="#people"><span class="k-icon k-add"></span>新增成员</a>
+      <div kendo-grid="grid" k-options="mainGridOptions"></div>
+      <!-- 详细信息模板 -->
+      <div class="well" ng-show="detail">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="control-label col-md-3">名称：</label>
+              <div class="col-md-9">
+                {{userName}}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="control-label col-md-3">联系电话：</label>
+              <div class="col-md-9">
+                {{phone}}
+              </div>
+            </div>
+          </div>
+          <!--/span-->
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="control-label col-md-3">部门：</label>
+              <div class="col-md-9">
+                {{department}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /详细信息模板 -->
+    </div>
+  </div>
+<!-- content结束 -->
+<!-- 模板 -->
+<!-- /.modal -->
+  <div class="modal fade" id="people" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-full">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+          <h4 class="modal-title">新增成员</h4>
+        </div>
+        <div class="modal-body">
+            <!-- BEGIN FORM-->
+              <form class="form-horizontal" name="peopleForm" novalidate >
+                <div class="form-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="control-label col-md-3">姓名*</label>
+                        <div class="col-md-7">
+                          <input type="text" name="userName" class="form-control" placeholder="姓名" ng-model="people.userName" required>
+                        </div>
+                        <div class="col-md-2 alert alert-danger well-sm" ng-show="peopleForm.userName.$dirty&&peopleForm.userName.$invalid">
+                            <span>姓名不能为空!</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="control-label col-md-3">联系方式</label>
+                        <div class="col-md-7">
+                          <input type="text" name="phone" min="11" class="form-control" placeholder="请输入11位手机号" ng-model="people.phone" required>
+                        </div>
+                        <!-- <div class="col-md-2 alert alert-danger well-sm" ng-show="peopleForm.phone.$dirty&&peopleForm.phone.$invalid">
+                            <span>电话不能为空!</span>
+                        </div>
+                        <div class="col-md-2 alert alert-danger well-sm" ng-show="peopleForm.phone.$error.min || peopleForm.phone.$error.max">
+                            <span>请输入11位手机号!</span>
+                        </div> -->
+                      </div>
+                    </div>
+                    <!--/span-->
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="control-label col-md-3">部门</label>
+                        <div class="col-md-7">
+                          <input type="text" name="department" class="form-control" placeholder="部门" ng-model="people.department" required>
+                        </div>
+                        <!-- <div class="col-md-2" ng-show="peopleForm.department.$dirty&&peopleForm.department.$invalid">
+                            <span style="color:red">名称不能为空!</span>
+                        </div> -->
+                      </div>
+                    </div>
+                    <!--/span-->
+                  </div>
+                  <!--/row-->
+                  <div class="row" ng-show="success">
+                    <div class="col-md-6 col-md-offset-3">
+                      <div class="alert alert-success">
+                        <strong>保存成功</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <!--/row-->
+                  <div class="row" ng-show="error">
+                    <div class="col-md-6 col-md-offset-3">
+                      <div class="alert alert-danger">
+                        <strong>保存失败</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <!--/row-->
+                </div>
+              </form>
+            <!-- END FORM-->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn blue" ng-click="update(people)" ng-disabled="peopleForm.$invalid">保存</button>
+          <button type="button" class="btn default" ng-click="reset()">重置</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+<!-- /.modal-->
