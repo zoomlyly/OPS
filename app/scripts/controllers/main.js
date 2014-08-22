@@ -913,16 +913,7 @@ angular.module('myApp.controllers', [])
     error(function(data, status, headers, config) {
 
     });
-    $scope.selection = [];
-    $scope.toggleSelection = function(featurename) {
-        var idx = $scope.selection.indexOf(featurename);
-        if (idx > -1) {
-            $scope.selection.splice(idx, 1);
-        } else {
-            $scope.selection.push(featurename);
-        }
 
-    }
     /*<PCModuleST 角色管理 角色管理 RoleManager>*/
     $scope.pageheader = '角色管理';
     $scope.pageheaderTitle = '成员';
@@ -943,18 +934,6 @@ angular.module('myApp.controllers', [])
                         req.setRequestHeader("Authorization", "Bearer " + token);
                     }
                 },
-                update: {
-                    /*<PCCode PutRole>*/
-                    url: function(data) {
-                        return $scope.gridAPI + data.models[0].id;
-                    },
-                    dataType: "json",
-                    type: "PUT",
-                    contentType: "application/json",
-                    beforeSend: function(req) {
-                        req.setRequestHeader("Authorization", "Bearer " + token);
-                    }
-                },
                 destroy: {
                     /*<PCCode DeleteRole>*/
                     url: function(data) {
@@ -966,27 +945,11 @@ angular.module('myApp.controllers', [])
                         req.setRequestHeader("Authorization", "Bearer " + token);
                     }
                 },
-                create: {
-                    url: $scope.gridAPI,
-                    dataType: "json",
-                    type: "POST",
-                    contentType: "application/json",
-                    beforeSend: function(req) {
-                        req.setRequestHeader("Authorization", "Bearer " + token);
-                    }
-                },
                 parameterMap: function(options, operation) {
-                    if (operation === "update" && options.models) {
-                        var jsonObject = {
-                            "id": options.models[0].id,
-                            "tenantId": $rootScope.my.tenants[0].id,
-                            "siteId": $rootScope.my.sites[0].id,
-                            "roleName": options.models[0].roleName,
-                            "features": options.models[0].features,
-                            "extType": "",
-                            "extData": "",
+                    if (operation !== "read" && options.models) {
+                        return {
+                            models: kendo.stringify(options.models)
                         };
-                        return kendo.stringify(jsonObject);
                     }
                 }
             },
@@ -1034,7 +997,7 @@ angular.module('myApp.controllers', [])
             title: "角色名称",
             width: "100px"
         }, {
-            command: ["edit", "destroy"],
+            command: ["destroy"],
             title: "&nbsp;",
             width: "100px"
         }, ],
@@ -1157,7 +1120,9 @@ angular.module('myApp.controllers', [])
             toolbar: ["create"],
             editable: "popup",
             edit: function(e) {
-                e.container.data("kendoWindow").title('分配成员角色');
+                if (e.models.isNew() && !e.model.dirty) {
+                    e.container.data("kendoWindow").title('分配成员角色');
+                }
             },
             columns: [{
                 field: "userName",
@@ -1197,8 +1162,13 @@ angular.module('myApp.controllers', [])
     /*表格事件*/
     function onChange(e) {
         var item = e.sender.dataItem(e.sender.select());
-        $scope.roleName = item.roleName;
+        $scope.id = item.id;
+        $scope.featuresEdit = JSON.parse(item.features);
         $scope.detail = item;
+        $scope.people = {
+            roleName: item.roleName
+        };
+
         $scope.$apply();
     }
     /*表单控制*/
@@ -1207,39 +1177,117 @@ angular.module('myApp.controllers', [])
         $scope.tenant = angular.copy($scope.saved);
     }
     $scope.update = function(people) {
-        /*<PCCode PostRole>*/
+
         for (var i = 0; i < $scope.selection.length; i++) {
             $scope.selection[i]["Id"] = "00000000000000000000000000000000";
         }
-        var jsonObject = {
-            "id": "00000000000000000000000000000000",
-            "tenantId": $rootScope.my.tenants[0].id,
-            "siteId": $rootScope.my.sites[0].id,
-            "roleName": people.roleName,
-            "features": kendo.stringify($scope.selection),
-            "extType": "",
-            "extData": ""
-        };
-        $http({
-            method: 'POST',
-            url: $scope.gridAPI,
-            data: jsonObject,
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        }).
-        success(function(data, status, headers, config) {
-            $scope.success = data;
-            $scope.grid.dataSource.add({
-                id: data.id,
-                roleName: data.roleName,
-            });
-            $scope.grid.dataSource.sync();
-        }).
-        error(function(data, status, headers, config) {
-            $scope.error = data;
-        });
-    };
+        if ($scope.buttonName === "保存") {
+            /*<PCCode PostRole>*/
+            var jsonObject = {
+                "id": "00000000000000000000000000000000",
+                "tenantId": $rootScope.my.tenants[0].id,
+                "siteId": $rootScope.my.sites[0].id,
+                "roleName": people.roleName,
+                "features": kendo.stringify($scope.selection),
+                "extType": "",
+                "extData": ""
+            };
 
+            $http({
+                method: 'POST',
+                url: $scope.gridAPI,
+                data: jsonObject,
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }).
+            success(function(data, status, headers, config) {
+                $scope.success = data;
+                $scope.grid.dataSource.add({
+                    id: data.id,
+                    roleName: data.roleName,
+                });
+                $scope.grid.dataSource.sync();
+            }).
+            error(function(data, status, headers, config) {
+                $scope.error = data;
+            });
+        } else {
+            console.log($scope.featuresEdit);
+            for (var i = 0; i < $scope.featuresEdit.length; i++) {
+                $scope.featuresEdit[i]["Id"] = "00000000000000000000000000000000";
+            };
+            /*<PCCode PutRole>*/
+            var jsonObject = {
+                "id": $scope.id,
+                "tenantId": $rootScope.my.tenants[0].id,
+                "siteId": $rootScope.my.sites[0].id,
+                "roleName": people.roleName,
+                "features": kendo.stringify($scope.featuresEdit),
+                "extType": "",
+                "extData": ""
+            };
+            $http({
+                method: 'PUT',
+                url: $scope.gridAPI + $scope.id,
+                data: jsonObject,
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }).
+            success(function(data, status, headers, config) {
+                $scope.success = status;
+                $scope.grid.dataSource.pushUpdate({
+                    id: $scope.id,
+                    roleName: people.roleName,
+                });
+                $scope.grid.dataSource.sync();
+            }).
+            error(function(data, status, headers, config) {
+                $scope.error = data;
+            });
+        }
+
+    };
+    $scope.addRole = function() {
+        // Metronic.init();
+        $scope.buttonName = "保存";
+        $scope.modalName = "新增角色";
+        $scope.people = {
+            roleName: ""
+        }
+        $scope.selection = [];
+        $scope.toggleSelection = function(featurename) {
+            var idx = $scope.selection.indexOf(featurename);
+            if (idx > -1) {
+                $scope.selection.splice(idx, 1);
+            } else {
+                $scope.selection.push(featurename);
+            }
+        }
+    }
+    $scope.editRole = function() {
+        // Metronic.init();
+        $scope.buttonName = "更新";
+        $scope.modalName = "编辑角色";
+        $scope.selection = [];
+        $scope.toggleSelection = function(featurename) {
+            var idx = $scope.selection.indexOf(featurename.Name);
+            if (idx > -1) {
+                $scope.selection.splice(idx, 1);
+                $scope.featuresEdit.pop(featurename);
+            } else {
+                $scope.featuresEdit.push(featurename);
+            }
+        }
+        if ($scope.featuresEdit != null) {
+            for (var i = 0; i < $scope.featuresEdit.length; i++) {
+                $scope.selection.push($scope.featuresEdit[i].Name);
+            }
+        } else {
+            $scope.selection = [];
+            alert("请先选择一个角色！");
+        }
+    }
     /*<PCModuleED 角色管理>*/
 });
